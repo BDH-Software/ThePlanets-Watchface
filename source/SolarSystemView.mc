@@ -33,7 +33,7 @@ var small_whh, /*full_whh,*/ zoomy_whh, whh0, whh1;
 var lastLoc as Lang.float;
 
 //! This view displays the position information
-class SolarSystemBaseView extends WatchUi.View {
+class SolarSystemBaseView extends WatchUi.WatchFace {
 
    
     private var _lines as Array<String>;
@@ -48,6 +48,7 @@ class SolarSystemBaseView extends WatchUi.View {
     
     //! Constructor
     public function initialize() {
+        f.deBug("viewInit start", null);
         View.initialize();
         //page = pg;
 
@@ -114,6 +115,8 @@ class SolarSystemBaseView extends WatchUi.View {
         System.println("POs1: " + small_whh);
         System.println("POs1: " + full_whh);
         System.println("POs1: " + zoomy_whh);*/
+
+        f.deBug("viewInit finish", null);
         
 
     }
@@ -133,6 +136,7 @@ class SolarSystemBaseView extends WatchUi.View {
         
     }
 
+    /*
     var local_animation_count = 0;
 
     function animationTimerCallback() as Void {
@@ -152,6 +156,7 @@ class SolarSystemBaseView extends WatchUi.View {
                 $.time_add_hrs += $.speeds[$.speeds_index];
               
             }*/
+            /*
 
            WatchUi.requestUpdate();
            
@@ -173,7 +178,9 @@ class SolarSystemBaseView extends WatchUi.View {
            //System.println("animationTimer: " + $.animation_count + " started: " + $.started + $.speedWasChanged +$.timeWasAdded);
     }
 
+    */
 
+    /*
     var animationTimer=null;
     public function startAnimationTimer(hertz){
         var now2 = System.getClockTime();
@@ -199,8 +206,8 @@ class SolarSystemBaseView extends WatchUi.View {
         animationTimer.start(method(:animationTimerCallback), 1000/hertz, true);
         //$.started = true;
         //if ($.reset_date_stop) {$.started=false;}
-    }
-
+    } */
+    /*
     public function stopAnimationTimer(){
 
         System.println ("Stop Animation Timer at " 
@@ -218,11 +225,12 @@ class SolarSystemBaseView extends WatchUi.View {
 
         }
     }
+    */
 
     //Two views have been created, somehow, & they are competing.   Kill the newest one.
     public function exitExtraBaseView(){
 
-        stopAnimationTimer();
+        //stopAnimationTimer();
         self=null;
     }
 
@@ -248,8 +256,10 @@ class SolarSystemBaseView extends WatchUi.View {
         max_c = (xc > yc) ? xc : yc;
         screenShape = thisSys.screenShape;
 
-        startAnimationTimer($.hz);
-        thisSys = null;        
+        //startAnimationTimer($.hz);
+        thisSys = null;       
+
+        
     
     }
 
@@ -276,7 +286,9 @@ class SolarSystemBaseView extends WatchUi.View {
         timeWasAdded = true;
         settings_view = null;
         settings_delegate = null;
-        startAnimationTimer($.hz);
+        //startAnimationTimer($.hz);
+
+        //Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:setPosition)); 
 
     }
 
@@ -496,6 +508,8 @@ class SolarSystemBaseView extends WatchUi.View {
     var ranvar = 0;
     
     public function onUpdate(dc as Dc) as Void {
+
+        f.deBug("onUPdateInit start", null);
         
 
 
@@ -2305,12 +2319,12 @@ class SolarSystemBaseView extends WatchUi.View {
         //System.println("showDate" + show);
         var targTime_sec = (addTime_hrs*3600).toLong() + time_nw.value();
         var xcent1  = xcent;  //speed or "stopped" location
-        var ycent1   = ycent -  1.5 *textHeight; //speed or "stopped" location
+        var ycent1   = ycent -  0 *textHeight; //speed or "stopped" location
         
         var xcent3   = xcent; //time location
-        var ycent3   = ycent - .5 * textHeight; //time location
+        var ycent3   = ycent - 1 * textHeight; //time location
 
-        var xcent2   = xcent;  //speed or "stopped" location
+        var xcent2   = xcent;  //speed or "stopped" location //could be for battery etc
         var ycent2   = ycent + 0.5* textHeight; 
 
         /*
@@ -2376,7 +2390,7 @@ class SolarSystemBaseView extends WatchUi.View {
         if (addTime_hrs < 700000 && addTime_hrs > -500000)// && type != :orrery) {
             {
 
-            var dt = new_date_info.day.format("%02d") + new_date_info_med.month;
+            var dt = new_date_info.day.format("%02d") + " " + new_date_info_med.month;
 
             var yr = "";
 
@@ -2386,19 +2400,36 @@ class SolarSystemBaseView extends WatchUi.View {
                 //dt =  dt + yr ;
                 
             }
-            if( screenShape== System.SCREEN_SHAPE_SEMI_OCTAGON  && type == :orrery) {
+            /*if( screenShape== System.SCREEN_SHAPE_SEMI_OCTAGON  && type == :orrery) {
                 dc.drawText(xcent1, ycent1 - textHeight/2.1, font, dt, justify);
                 dc.drawText(xcent1, ycent1 + textHeight/2.1, font, yr, justify);
-            } else {
-                dc.drawText(xcent1, ycent1, font, dt + yr, justify);
+            } else { */
+                dc.drawText(xcent1, ycent1, font, dt + " " + yr, justify);
 
-            }
+            //}
             
             
             //if (new_date_info.year<2100 && new_date_info.year>1900 && type != :orrery) 
             //##### ADD THE HR & MIN if between 1900  & 2100AD ####
+            var mySettings = System.getDeviceSettings();
+            var is24Hr = mySettings.is24Hour;
             if (new_date_info.year<2100 && new_date_info.year>1900) 
+            { 
+                if (is24HR)
                 { dc.drawText(xcent3, ycent3, font, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);}
+                else {
+
+                    var hr = new_date_info.hour%12;
+                    if (hr == 0) {hr = 12;}
+                    var ampm = "am";
+                    if (new_date_info.hour >=12) {
+                        ampm = "pm";
+                    }
+
+                    dc.drawText(xcent3, ycent3, font, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);
+
+                }
+            }
 
         } else {
             // ##### DATE JULIAN VERSION FOR MANY YEARS PAST/FUTURE ####
@@ -2427,6 +2458,7 @@ class SolarSystemBaseView extends WatchUi.View {
 
         // #### SPEED ####
         //if (show && (sm_ret == 0 )) { //msg_ret ==0 means, don't show this when there is a special msg up
+        /*
         if (true) {
             var sep = ">";
             //var ssi=$.speeds[$.speeds_index] ;
@@ -2470,6 +2502,7 @@ class SolarSystemBaseView extends WatchUi.View {
             dc.drawText(xcent2, ycent2, font, sep + intvl + sep, justify);
             //$.show_intvl = false;
         }
+        */
         
         /* else if ((15*$.hz).toNumber() < 2.0* $.hz) {
             dc.drawText(xcent2, ycent2+ .5*textHeight, font, msg, justify);
@@ -3583,9 +3616,10 @@ class SolarSystemBaseView extends WatchUi.View {
     //several fallbacks
     function setPosition (pinfo as Info) {
         System.println ("setPosition");
+        
 
         //We only need this ONCE, not continuously, so . . . 
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:setPosition));
+        //Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:setPosition));
 
         //lastLoc = [0,0]; //for testing
         //lastLoc = [51.5, 0]; //for testing - Greenwich
@@ -3708,7 +3742,7 @@ class SolarSystemBaseView extends WatchUi.View {
         
         if (!man_set) {self.lastLoc = new_lastLoc;} //if man_set is true, then we don't want to update self.lastLoc with the new value, we want to keep the value that was set by the user.
 
-        //System.println("setPosition (from GPS, final) at " + animation_count + " to: "  + new_lastLoc + " manual GPS mode?" + man_set + " final SET pos: " + self.lastLoc);
+        System.println("setPosition (from GPS, final) at " + animation_count + " to: "  + new_lastLoc + " manual GPS mode?" + man_set + " final SET pos: " + self.lastLoc);
         return man_set;
     }
 

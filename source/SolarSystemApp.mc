@@ -137,17 +137,17 @@ class SolarSystemBaseApp extends Application.AppBase {
         
 
         //readStorageValues();
-        Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:onPosition));
+        
     }
 
     //! Handle app shutdown
     //! @param state Shutdown arguments
     public function onStop(state as Dictionary?) as Void {
-        /*System.println ("onStop at " 
+        System.println ("onStop at " 
             +  $.now.hour.format("%02d") + ":" +
             $.now.min.format("%02d") + ":" +
             $.now.sec.format("%02d"));
-            */
+            
         //_solarSystemView.stopAnimationTimer();
         started = false;
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
@@ -161,7 +161,7 @@ class SolarSystemBaseApp extends Application.AppBase {
     //! Update the current position
     //! @param info Position information
     public function onPosition(info as Info) as Void {
-        //System.println("onPosition... count: " + $.count);
+        System.println("onPosition... count: " + $.count);
         _solarSystemView.setPosition(info);
 
     }
@@ -169,7 +169,7 @@ class SolarSystemBaseApp extends Application.AppBase {
     //! Return the initial view for the app
     //! @return Array [View]
     public function getInitialView() as [Views] or [Views, InputDelegates] {
-        deBug("initialview",[]);
+        deBug("initialview",[]);        
 
         Options = [extraPlanets, planetLabels,
             // smallerBanners, 
@@ -209,7 +209,7 @@ class SolarSystemBaseApp extends Application.AppBase {
         if (ret != null) { $.Options_Dict.put(lastLoc_saved,ret);}
 
         _solarSystemView.setInitPosition(); //this must be done AFTER readStorageValues()
-        _solarSystemView.startAnimationTimer($.hz);
+        //_solarSystemView.startAnimationTimer($.hz);
 
         view_mode=0;
         $.changeModes(null); //inits speeds_index properly        
@@ -218,16 +218,20 @@ class SolarSystemBaseApp extends Application.AppBase {
             +  now.hour.format("%02d") + ":" +
             now.min.format("%02d") + ":" +
             now.sec.format("%02d"));*/
+
+        f.deBug("initview Finished", null);
         return [_solarSystemView, _solarSystemDelegate];
         _solarSystemDelegate = null;
         _solarSystemView = null;
 
     }
 
+/*
     function getGlanceView() {
         f.deBug("getglanceview",[]);
         return [ new SSGlanceView() ];
     }
+    */
     /*
     // settingsview works only for watch faces & data fields (?)
     public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {

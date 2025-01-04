@@ -9,13 +9,14 @@ var change_mode_select_button_firstpress = false;
 var EBBF_next_mode = 1;
 
 //! Handle input on initial view
-class SolarSystemBaseDelegate extends WatchUi.BehaviorDelegate {
+class SolarSystemBaseDelegate extends WatchUi.WatchFaceDelegate {
     private var _mainview as SolarSystemBaseView?;
     //! Constructor
     public function initialize(view) {
         BehaviorDelegate.initialize();
         //System.println("delegate initl..");
         _mainview = view;
+        f.deBug("delegateInit start", null);
 
         /*
         $.speeds = [-24*365*10, -24*365*7, -24*365*4, -24*365*2,-24*365.2422, -24*365, //0; year multiples (added 0)
@@ -48,7 +49,7 @@ class SolarSystemBaseDelegate extends WatchUi.BehaviorDelegate {
         //$.exiting_back_button_firstpress=false;
         if (buttonPresses == 1) {return true;} //1st buttonpress just gets out of intro titles
 
-        if (_mainview.animation_count == last_animation_count) {
+        /* if (_mainview.animation_count == last_animation_count) {
             animation_retry_tally ++;
             if (animation_retry_tally%3 == 0) {
                 _mainview.startAnimationTimer($.hz);
@@ -57,7 +58,7 @@ class SolarSystemBaseDelegate extends WatchUi.BehaviorDelegate {
         } else {
             animation_retry_tally =0;            
         }
-        last_animation_count=_mainview.animation_count;
+        last_animation_count=_mainview.animation_count; */
 
         /*
         if ($.exiting_back_button_firstpress)
