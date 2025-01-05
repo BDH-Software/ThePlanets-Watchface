@@ -2308,7 +2308,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
     function showDate(dc, date, time_nw, addTime_hrs ,xcent as Lang.float, ycent as Lang.float, incl_years, show, type){
         font = Graphics.FONT_TINY;
+        var bigfont = Graphics.FONT_LARGE;
         textHeight =  dc.getFontHeight(font);        
+        var bigTextHeight = dc.getFontHeight(bigfont);        
         var justify = Graphics.TEXT_JUSTIFY_CENTER;
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -2318,14 +2320,14 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
         //System.println("showDate" + show);
         var targTime_sec = (addTime_hrs*3600).toLong() + time_nw.value();
-        var xcent1  = xcent;  //speed or "stopped" location
-        var ycent1   = ycent -  0 *textHeight; //speed or "stopped" location
+        var xcent1  = xcent;  //DATE location
+        var ycent1   = ycent -  0 *textHeight; //DATE location
         
         var xcent3   = xcent; //time location
-        var ycent3   = ycent - 1 * textHeight; //time location
+        var ycent3   = ycent - 1 * bigTextHeight; //time location
 
-        var xcent2   = xcent;  //speed or "stopped" location //could be for battery etc
-        var ycent2   = ycent + 0.5* textHeight; 
+        //var xcent2   = xcent;  //speed or "stopped" location //could be for battery etc
+        //var ycent2   = ycent + 0.5* textHeight; 
 
         /*
         
@@ -2415,8 +2417,8 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             var is24Hr = mySettings.is24Hour;
             if (new_date_info.year<2100 && new_date_info.year>1900) 
             { 
-                if (is24HR)
-                { dc.drawText(xcent3, ycent3, font, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);}
+                if (is24Hr)
+                { dc.drawText(xcent3, ycent3, bigfont, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);}
                 else {
 
                     var hr = new_date_info.hour%12;
@@ -2426,7 +2428,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                         ampm = "pm";
                     }
 
-                    dc.drawText(xcent3, ycent3, font, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);
+                    dc.drawText(xcent3, ycent3, bigfont, hr.format("%d")+":" + new_date_info.min.format("%02d") + ampm, justify);
 
                 }
             }
