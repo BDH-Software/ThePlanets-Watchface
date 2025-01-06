@@ -284,8 +284,8 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         $.started = $.save_started != null ? $.save_started : true;
         if ($.reset_date_stop) {$.started = false;} // after a Date Reset we STOP at that moment until user wants to start.
         timeWasAdded = true;
-        settings_view = null;
-        settings_delegate = null;
+        //settings_view = null;
+        //settings_delegate = null;
         //startAnimationTimer($.hz);
 
         //Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:setPosition)); 
@@ -2164,11 +2164,11 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             } else 
             */
 
-            if ( ($.time_now.value() - $.start_time_sec) < 4 ) {
+            /*if ( ($.time_now.value() - $.start_time_sec) < 4 ) {
                 msg = [$.time_now.value() + 1, "THE", "PLANETS", " ", "Now..."];    
-            } else {
+            } else {*/
                 $.buttonPresses ++; //if we are in "no help banners" mode & the banner disappears, then we no longer want to trap that very first buttonpress
-            }
+            //}
         }
 
         if (msg == null || !(msg instanceof Array) || msg.size() == 0) { msgDisplayed = false; return 0;}
@@ -2314,9 +2314,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         var justify = Graphics.TEXT_JUSTIFY_CENTER;
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        var sm_ret = showMessage(dc, justify);  //will use same color font, textHeight as above
+        //var sm_ret = showMessage(dc, justify);  //will use same color font, textHeight as above
 
-        if (sm_ret> 0 ) { return; }  //any msg displayed, we just skip all these dates etc
+        //if (sm_ret> 0 ) { return; }  //any msg displayed, we just skip all these dates etc
 
         //System.println("showDate" + show);
         var targTime_sec = (addTime_hrs*3600).toLong() + time_nw.value();

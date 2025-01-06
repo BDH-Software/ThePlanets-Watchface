@@ -88,7 +88,7 @@ class SolarSystemBaseApp extends Application.AppBase {
 
 
     private var _solarSystemView as SolarSystemBaseView;
-    private var _solarSystemDelegate as SolarSystemBaseDelegate;
+    //private var _solarSystemDelegate as SolarSystemBaseDelegate;
 
     //! Constructor
     public function initialize() {
@@ -121,10 +121,10 @@ class SolarSystemBaseApp extends Application.AppBase {
     public function onStart(state as Dictionary?) as Void { 
         f.deBug("onstart",[]); 
         //System.println("onStart...");
-        $.started = false;
+        $.started = true; //for watch version, we just start, no titles etc.
         $.run_oneTime = true;
         $.timeWasAdded = true;
-        $.buttonPresses = 0;
+        $.buttonPresses = 1; //for watch version we auto-press that "first button" to clear titles etc
         $.animation_count = 0;
         $.countWhenMode0Started = 0;
         $.now = System.getClockTime(); //before ANY routines or functions run, so all can have access if necessary        
@@ -152,9 +152,9 @@ class SolarSystemBaseApp extends Application.AppBase {
         started = false;
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         _solarSystemView = null;
-        _solarSystemDelegate = null;
-        settings_view = null;
-        settings_delegate = null;
+        //_solarSystemDelegate = null;
+        //settings_view = null;
+        //settings_delegate = null;
 
     }
 
@@ -186,7 +186,7 @@ class SolarSystemBaseApp extends Application.AppBase {
         //do this AFTER getting time & reading init storage values
         _solarSystemView = new $.SolarSystemBaseView();
         solarSystemView_class = _solarSystemView;
-        _solarSystemDelegate = new $.SolarSystemBaseDelegate(_solarSystemView);
+        //_solarSystemDelegate = new $.SolarSystemBaseDelegate(_solarSystemView);
 
         //These  2 must be done AFTER View class is inited
         //readStorageValues();
@@ -220,8 +220,8 @@ class SolarSystemBaseApp extends Application.AppBase {
             now.sec.format("%02d"));*/
 
         f.deBug("initview Finished", null);
-        return [_solarSystemView, _solarSystemDelegate];
-        _solarSystemDelegate = null;
+        return [_solarSystemView];
+        //_solarSystemDelegate = null;
         _solarSystemView = null;
 
     }
@@ -372,3 +372,58 @@ class SolarSystemInputDelegate extends WatchUi.InputDelegate {
 }
 
 */
+
+
+//picks up current mode from global $.view_mode
+function changeModes(previousMode){
+        //System.println("chmodes..." );
+        
+        $.timeWasAdded = true; //forces draw of screen in mode 0...
+        $.animSinceModeChange = 0;
+        $.show_intvl = 0; //used by showDate to decide when/how long to show (5 min) type labels
+
+
+        var changeModeOption_short = f.toArray(WatchUi.loadResource($.Rez.Strings.changeModeOption_short) as String,  "|", 0);
+
+        
+
+            if ($.view_mode ==0) {$.view_mode = 1;}    
+                
+            if ($.view_mode ==1){
+                //if (vsop_cache == null)  {vsop_cache = new VSOP87_cache();}
+                //time_add_inc=1;
+                //DON'T reset to present time here bec. we're usually coming from mode 0 or mode 2& can just continue seamlessly
+                //$.time_add_hrs = .5; //reset to present time
+                if (previousMode == null || (previousMode!=1 && previousMode !=2 ) ) {  //mode 5 often moves years into the future...
+                    $.time_add_hrs = 0; //reset to present time
+                }
+                speeds_index = 39; //10 mins
+                started = false;
+                //if ($.Options_Dict[helpBanners_enum]){solarSystemView_class.sendMessage(5, ["==Current Sky (by hr)==", UUD, SS, null]);} 
+                //if (!$.Options_Dict[smallerBanners]){solarSystemView_class.sendMessage(5, [dMsg[12], UUD, SS, null]);} 
+                //else {
+                    solarSystemView_class.sendMessage(2, [null, changeModeOption_short[1],"", null, null]);
+                //}
+            } 
+            else {
+                //if (vsop_cache == null)  {vsop_cache = new VSOP87_cache();}
+                //time_add_inc = 24*3; //1 day
+                //DON'T reset to present time here bec. we're usually coming from mode 0 or mode 2& can just continue seamlessly
+                if (previousMode != null && previousMode==3 ) {  //mode 3 often moves years into the future...
+                    $.time_add_hrs = 0; //reset to present time
+                }
+                speeds_index = 48; //1 day or 24 hrs
+                started = false;
+                //if ($.Options_Dict[smallerBanners]){solarSystemView_class.sendMessage(5, [dMsg[13], UUD, SS,null]);}
+                //else {
+                    solarSystemView_class.sendMessage(4, [changeModeOption_short[3], changeModeOption_short[2], null, null]);
+                //}
+            }
+     
+
+        
+
+        changeModeOption_short = null;
+        
+
+}
