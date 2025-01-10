@@ -3035,7 +3035,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             if ((textDisplay_count * mlt2) % (mlt*hez).toNumber() < hez || drawThis) {
             
                 //if (type == :ecliptic) {
-                    if (!key.equals("Sun") && key.find("Eclipt")==null)  {
+                    if (!key.equals("Sun") && key.find("Ec")==null)  {
                         sub = findSpot(-pp[key][0]+sid);
                         mult = 0.8 - (.23 * sub);
                         x2 = mult*r* Math.cos(ang_rad) + xc;
@@ -3618,6 +3618,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
     //several fallbacks
     function setPosition (pinfo as Info) {
         System.println ("setPosition");
+        var curr_pos = null;
         
 
         //We only need this ONCE, not continuously, so . . . 
@@ -3641,7 +3642,22 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //System.println ("sc1: Null? " + (pinfo==null));
         //if (pinfo != null ) {deBug ("setPosition getting position from OS:",  pinfo.position.toDegrees());}
 
-        var curr_pos = null;
+        //From activity is the PREFERRED way for watch faces
+        if (curr_pos == null) {
+            var a_info = Activity.getActivityInfo();
+            var a_pos = null;
+            System.println ("sc1.2:Activity a_pos==Null3? " + (a_pos==null));
+            
+             if (a_info!=null && a_info has :currentLocation && a_info.currentLocation != null)
+                { a_pos = a_info.currentLocation;}
+            //System.println ("setPosition4");
+            if (a_pos != null ) {
+                System.println ("Position: Got from Activity.getActivityInfo() currentLocation" + a_pos + " " + a_pos.toDegrees());
+                curr_pos = a_pos; 
+            }
+        }
+
+        
         if (pinfo!= null && pinfo.position != null) { curr_pos = pinfo.position; }
         else { //if there is nothing in the pinfo passed to us we just try to grab it now (ie, at init)
             pinfo = Position.getInfo(); 

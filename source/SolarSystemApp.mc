@@ -150,7 +150,7 @@ class SolarSystemBaseApp extends Application.AppBase {
             
         //_solarSystemView.stopAnimationTimer();
         started = false;
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
+        //Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         _solarSystemView = null;
         //_solarSystemDelegate = null;
         //settings_view = null;
