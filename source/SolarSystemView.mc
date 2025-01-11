@@ -911,7 +911,8 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
     var time_last_calcs_sec = 0;
     var whh;
-    
+    var no_calc_times = 0;
+
     //big_small = 0 for small (selectio nof visible planets) & 1 for big (all planets)
     public function largeEcliptic(dc, big_small) {
         
@@ -931,11 +932,15 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
         var time_since_last_calcs_sec = $.time_now.value() - time_last_calcs_sec;
 
-        var do_calc =  (time_since_last_calcs_sec >= 5*60) ? true : false;
+        var do_calc =  (time_since_last_calcs_sec >= 5*60 || time_since_last_calcs_sec < 0
+        ||no_calc_times>1000) ? true : false;
 
-        deBug("docalc", [time_since_last_calcs_sec, $.time_now.value(), time_last_calcs_sec, do_calc]);        
+        deBug("docalc", [time_since_last_calcs_sec, $.time_now.value(), time_last_calcs_sec, do_calc]); 
+
+        if (!do_calc) {no_calc_times++;}       
 
         if (do_calc) {
+            no_calc_times = 0;
 
             time_last_calcs_sec=$.time_now.value();
 
