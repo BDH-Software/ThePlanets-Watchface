@@ -617,11 +617,11 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //$.time_now = now; //for testing
         $.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);
         
-        deBug("oud-exiting?", [$.now_info.min%5, dirty, $.now_info.sec]);
+        //deBug("oud-exiting?", [$.now_info.min%5, dirty, $.now_info.sec]);
 
         if ($.now_info.min%5 !=0 && !dirty &&  $.now_info.sec == 0) {
             showDate(dc, $.now_info, $.time_now, time_add_hrs, xc, yc, true, true, :ecliptic_latlon);
-            deBug("oud-exiting yes", $.now_info.min%5);
+            //deBug("oud-exiting yes", $.now_info.min%5);
             return;
         }
         dirty = false;
@@ -935,7 +935,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         var do_calc =  (time_since_last_calcs_sec >= 5*60 || time_since_last_calcs_sec < 0
         ||no_calc_times>1000) ? true : false;
 
-        deBug("docalc", [time_since_last_calcs_sec, $.time_now.value(), time_last_calcs_sec, do_calc]); 
+        //deBug("docalc", [time_since_last_calcs_sec, $.time_now.value(), time_last_calcs_sec, do_calc]); 
 
         if (!do_calc) {no_calc_times++;}       
 
