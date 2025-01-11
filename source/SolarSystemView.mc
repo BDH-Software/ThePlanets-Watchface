@@ -41,6 +41,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
     
     public var xc, yc, min_c, max_c, screenHeight, screenWidth, targetDc, screenShape, thisSys;
     private var ssbv_init_count;
+    var dirty = true;
     
     
     
@@ -57,6 +58,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         ssbv_init_count_global ++;        
         ssbv_init_count = ssbv_init_count_global;
         System.println("SsView init #"+ssbv_init_count);
+        dirty = true;
 
         //speeds_index = 19; //inited in app.mc where the var is located
         view_mode = 0;
@@ -271,6 +273,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             $.now.sec.format("%02d")); */
         $.save_started = $.started;
         $.started = false;
+        dirty = true;
         
 
     }
@@ -289,6 +292,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //startAnimationTimer($.hz);
 
         //Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:setPosition)); 
+        dirty = true;
 
     }
 
@@ -509,7 +513,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
     
     public function onUpdate(dc as Dc) as Void {
 
-        f.deBug("onUPdateInit start", null);
+        $.time_add_hrs = 0;
+
+        //f.deBug("onUPdateInit start", null);
         
 
 
@@ -527,7 +533,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         } 
         */  
 
-
+        /*
         //If stopping, we need to run ONCE with the updates to text/titles, then hold there.  Tricky
         if (
                 !started 
@@ -576,6 +582,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                     //System.println ("NMZ SWC 4");
                 }
                 */
+                /*
                 stopping_completed = true;
                 //System.println ("NMZ SWC 5");
                 //return;
@@ -585,6 +592,8 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             //System.println ("NMZ SWC 6");
             stopping_completed =false;
         }
+        */
+
         //System.println ("NMZ SWC 7");
         //System.println("made it one time!!!!" + ranvar);
 
@@ -593,18 +602,29 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
         //        System.println("started: " + $.started + " run_oneTime" + $.run_oneTime + + " run_once" + ($.now.sec==0) + " stoppingcompleted " + stopping_completed + " viewmode: " + $.view_mode + " timewasadded: " + $.timeWasAdded + " buttonpresses:" + $.buttonPresses + " animation count: " +  $.animation_count + " messageuntil: " + $.message_until + " ");
 
-        $.run_oneTime = false;
+        //$.run_oneTime = false;
         $.time_now = Time.now();
         
+        /*
         //In case a button hasn't been pressed in X seconds, stop.  So as to preserve battery.
         if ($.time_now.value() > $.last_button_time_sec + 60 ) {
         //if ($.time_now.value() > $.last_button_time_sec + 30 ) {  //for testing
             $.started = false;
             //$.run_oneTime = true;
         }
+        */
 
         //$.time_now = now; //for testing
         $.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);
+        
+        deBug("oud-exiting?", [$.now_info.min%5, dirty, $.now_info.sec]);
+
+        if ($.now_info.min%5 !=0 && !dirty &&  $.now_info.sec == 0) {
+            showDate(dc, $.now_info, $.time_now, time_add_hrs, xc, yc, true, true, :ecliptic_latlon);
+            deBug("oud-exiting yes", $.now_info.min%5);
+            return;
+        }
+        dirty = false;
    
 
         /*         if ($.view_mode>0 && !reset_date_stop && started)  {
@@ -612,12 +632,14 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                 $.time_add_hrs += $.speeds[$.speeds_index];
          }*/
 
+        /*
         if ($.view_mode>0 && !reset_date_stop && started)  {
             //deBug("speeds Index", [$.speeds_index]);
             $.speeds = WatchUi.loadResource( $.Rez.JsonData.speeds) as Array;
             $.time_add_hrs += $.speeds[$.speeds_index];
             $.speeds = null;
         }
+        */
 
 
 
@@ -847,7 +869,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
         //lastLoc = [59.00894, -94.44008]; //for testing
         var sr = new srs();
-        sunrise_events2 = sr.getRiseSetfromDate_hr($.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs,lastLoc[0], lastLoc[1], pp["Sun"]);
+        sunrise_events2 = sr.getRiseSetfromDate_hr($.now_info, $.now.timeZoneOffset, $.now.dst, 0,lastLoc[0], lastLoc[1], pp["Sun"]);
         
 
         //System.println("Sunrise_set2%%%%%%%: " + sunrise_events2);
@@ -887,9 +909,12 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         final_adj_rad = Math.toRadians(final_adj_deg);
     }
 
+    var time_last_calcs_sec = 0;
+    var whh;
+    
     //big_small = 0 for small (selectio nof visible planets) & 1 for big (all planets)
     public function largeEcliptic(dc, big_small) {
-        var whh;
+        
 
          // Set background color
         dc.setColor(Graphics.COLOR_TRANSPARENT, Graphics.COLOR_BLACK);
@@ -904,209 +929,221 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
         //obliq_deg= obliquityEcliptic_deg ($.now_info.year, $.now_info.month, $.now_info.day + time_add_hrs, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst);
 
-        obliq_deg=  f.calc_obliq_deg ($.now_info, $.now);
-   
-        r = (xc < yc) ? xc : yc;
-        r = .85 * r * eclipticSizeFactor; //was .9 but edge of screen a bit crowded???
+        var time_since_last_calcs_sec = $.time_now.value() - time_last_calcs_sec;
 
-        font = Graphics.FONT_TINY;
-        textHeight = dc.getFontHeight(font);
-        /*
-        y -= (_lines.size() * textHeight) / 2;
-        //dc.drawText(x, y+50, Graphics.FONT_SMALL, "Get Lost", Graphics.TEXT_JUSTIFY_CENTER);
-        for (var i = 0; i < _lines.size(); ++i) {
-            dc.drawText(x, y, Graphics.FONT_TINY, _lines[i], Graphics.TEXT_JUSTIFY_CENTER);
-            y += textHeight;
+        var do_calc =  (time_since_last_calcs_sec >= 5*60) ? true : false;
+
+        deBug("docalc", [time_since_last_calcs_sec, $.time_now.value(), time_last_calcs_sec, do_calc]);        
+
+        if (do_calc) {
+
+            time_last_calcs_sec=$.time_now.value();
+
+            obliq_deg=  f.calc_obliq_deg ($.now_info, $.now);
+    
+            r = (xc < yc) ? xc : yc;
+            r = .85 * r * eclipticSizeFactor; //was .9 but edge of screen a bit crowded???
+
+            font = Graphics.FONT_TINY;
+            textHeight = dc.getFontHeight(font);
+            /*
+            y -= (_lines.size() * textHeight) / 2;
+            //dc.drawText(x, y+50, Graphics.FONT_SMALL, "Get Lost", Graphics.TEXT_JUSTIFY_CENTER);
+            for (var i = 0; i < _lines.size(); ++i) {
+                dc.drawText(x, y, Graphics.FONT_TINY, _lines[i], Graphics.TEXT_JUSTIFY_CENTER);
+                y += textHeight;
+            }
+            //dc.drawText(x, y-50, Graphics.FONT_SMALL, "Bug Off", Graphics.TEXT_JUSTIFY_CENTER);
+            */
+
+            //planetnames = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto","Ceres","Chiron","Eris"];
+            
+            whh_sun  = ["Sun"];
+            //whh = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn"];
+            //whh = whh0;
+            //whh = allPlanets.slice(0,4).add(allPlanets[5].addAll(allPlanets.slice(9,14))
+            //whh = allPlanets; //
+
+            var allPlanets = f.toArray(WatchUi.loadResource($.Rez.Strings.planets_Options1) as String,  "|", 0);
+
+            //deBug("allpl", allPlanets);
+            whh = ["Ec0", "Ec90", "Ec180", "Ec270",allPlanets[4]]; //put first so they are UNDER the planets.  Moon is next so planets will go in front of it (it's large)
+            
+            whh.addAll( allPlanets.slice(0,3)); ///so, array2 = array1 only passes a REFERENCE to the array, they are both still the same array with different names.  AARRGGgH!!
+            //f.deBug("ap1", whh);
+            whh.addAll(allPlanets.slice(5,8));
+            //f.deBug("ap2", whh);
+            if (Options_Dict[extraPlanets]) {
+                whh.addAll(allPlanets.slice(8,12));
+            }
+            allPlanets = null;
+
+            //f.deBug("ap3", [whh, Options_Dict[extraPlanets], Options_Dict]);
+
+            //we add these last so they show up on top of planets etc
+            
+
+            //deBug ("www - whh0", whh);
+            //vspo_rep = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn", "Uranus","Neptune"];
+            /*
+            if (big_small == 1) {
+                //whh = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto","Ceres","Chiron","Eris", "Gonggong"]; 
+                whh = whh1;
+                whh = allPlanets.slice(0,3).add(allPlanets[5].addAll(allPlanets.slice(9,16))
+            }
+            */
+
+
+            //TODO: Make all this JUlian Time so we don't need to worry about Unix seconds & all that
+            //add_duration = new Time.Duration($.time_add_hrs*3600);
+            //System.println("View Ecliptic:" + add_duration + " " + $.time_add_hrs);
+
+            //now = System.getClockTime();
+            //var $.now_info = Time.Gregorian.info(Time.now().add(add_duration), Time.FORMAT_SHORT);
+            //var $.time_now = Time.now();
+            //var $.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);
+            
+
+
+
+            //System.println("View Ecliptic:" + $.now_info.year + " " + $.now_info.month + " " + $.now_info.day + " " + $.now_info.hour + " " + $.now_info.min + " " + $.now.timeZoneOffset/3600 + " " + $.now.dst);
+            //g = new Geocentric($.now_info.year, $.now_info.month, $.now_info.day, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh);
+
+            //pp=g.position();
+            //kys = pp.keys();
+
+            //Geo_cache.fetch always returns the info for Midnight UTCH
+            //Which we then add the correct # of hours to (depending on )
+            //current  time zone, DST, etc, in order to put the 
+            //sun @ the correct time.  We also put in a small adjustment
+            //So that local solar noon is always directly UP & solor 
+            //midnight is directly DOWN on the circle.
+            //pp2 = $.geo_cache.fetch($.now_info.year, $.now_info.month, $.now_info.day, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh);
+            //moon_info = simple_moon.lunarPhase($.now_info, $.now.timeZoneOffset, $.now.dst);
+
+            /* input = {:year => $.now_info.year,
+            :month => $.now_info.month,
+            :day => $.now_info.day,
+            :hour => $.now_info.hour,
+            :minute => $.now_info.min,
+            :UT => $.now.timeZoneOffset/3600,
+            :dst => $.now.dst,
+            :longitude => lastLoc[0], 
+            :latitude => lastLoc[1],
+            :topographic => false, 
+            };
+            moon = new Moon(input);
+            */
+
+            //    $.time_now = Time.now();
+            //$.time_now = now; //for testing
+            //$.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);   
+            //simple_moon = new simpleMoon();
+            //deBug ("moon_infe ", [$.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs]);
+
+            //deBug("moon_infe: ", [$.now.hour, $.now.min, $.now.sec, $.now_info.day, $.now_info.month, $.now_info.year, $.time_now.value(), $.now_info, $.run_oneTime, $.time_add_hrs, $.speeds, $.speeds_index]);
+            
+
+            //deBug("moon_inf", moon_info3);
+
+            //sun_info3 =  simple_moon.eclipticSunPos ($.now_info, $.now.timeZoneOffset, $.now.dst); 
+            //simple_moon = null;
+
+            //elp82 = new ELP82();
+            //moon_info4 = elp82.eclipticMoonELP82 ($.now_info, $.now.timeZoneOffset, $.now.dst);
+            //elp82 = null;
+
+            
+            // moon_info2 = simple_moon.lunarPhase($.now_info, $.now.timeZoneOffset, $.now.dst);
+            //moon_info = moon.position();
+            //vspo87a = new vsop87a_nano();
+            //vspo87a = new vsop87a_pico();
+            //pp = vspo87a.planetCoord($.now_info, $.now.timeZoneOffset, $.now.dst, :ecliptic_latlon);
+            //pp = vsop_cache.fetch($.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs, :ecliptic_latlon, whh);   
+            
+            
+            var v = new vs();
+            pp = v.planetCoord($.now_info, $.now.timeZoneOffset, $.now.dst, 0, :ecliptic_latlon, whh, :widget);   
+            v = null;
+            
+            //vspo87a = null;
+
+            
+            //Add 4 ecliptic points to the planets
+            for (var rra_deg = 0; rra_deg<360;rra_deg += 90) {
+                    var ddecl = 0;
+                    if (rra_deg == 90) { ddecl = obliq_deg;}
+                    if (rra_deg == 270) { ddecl = obliq_deg;}
+                    //pp.put("Ecliptic"+rra_deg, [f.normalize(pp["Sun"][0] + rra_deg), ddecl]);
+                    pp.put("Ec"+rra_deg, [rra_deg, ddecl, 50]);
+            }
+
+            //flattenEclipticPP(obliq_deg);     
+
+            //deBug("pp: ", pp);
+
+            //System.println("Moon simple3: " + moon_info3 + " elp82: "+ moon_info4);
+            //System.println("Moon simple2: " + moon_info2);
+            //System.println("Moon ecl pos: " + moon_info);
+            //pp.put("Moon", [pp["Sun"][0] + moon_info[0]]);
+            //deBug("moon, ", [moon_info3[0]]);
+
+            
+            
+            //pp["Sun"] = [sun_info3[:lat], sun_info3[:lon], sun_info3[:r]];
+            //System.println("Sun info3: " + sun_info3);
+            //System.println("Moon info: " + moon_info);
+            //System.println("Sun-moon: " + pp["Sun"][0] + " " + pp["Moon"][0] );
+            //System.println("Sun simple3: " + sun_info3);
+            //System.println("pp: " + pp);
+            //System.println("pp2: " + pp2);
+
+
+            
+            //g = null;
+
+            //g = new Geocentric($.now_info.year, $.now_info.month, $.now_info.day, 0, 0, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh_sun);
+
+            //pp_sun = g.position();
+
+
+
+            //g = null;
+
+            //setPosition();
+            //var pos_info = self.lastLoc.getInfo();
+            //var deg = pos_info.position.toDegrees();
+
+            //srs = new sunRiseSet($.now_info.year, $.now_info.month, $.now_info.day, $.now.timeZoneOffset/3600, $.now.dst, lastLoc[0], lastLoc[1]);
+            //sunrise_events = srs.riseSet();
+            /*
+
+            sunrise_events = sunrise_cache.fetch($.now_info.year, $.now_info.month, $.now_info.day, $.now.timeZoneOffset/3600, $.now.dst, time_add_hrs, lastLoc[0], lastLoc[1]);
+
+            //System.println("Sunrise_set: " + sunrise_events);
+            //System.println("Sunrise_set: " + sunrise_set);
+            //sunrise_set = [sunrise_set[0]*15, sunrise_set[1]*15]; //hrs to degrees
+
+            //This puts our midnight sun @ the bottom of the graph; everything else relative to it
+            //geo_cache.fetch brings back the positions for UTC & no dst, so we'll need to correct
+            //for that
+            //TODO: We could put in a correction for EXACT LONGITUDE instead of just depending on 
+            //$.now_info.hour=0 being the actual local midnight.
+            //pp/ecliptic degrees start at midnight (bottom of circle) & proceed COUNTERclockwise.
+            sun_adj_deg = 270 - pp["Sun"][0];
+            hour_adj_deg = f.normalize($.now_info.hour*15 + time_add_hrs*15.0 + $.now_info.min*15/60);
+            //We align everything so that NOON is directly up (SOLAR noon, NOT 12:00pm)
+            noon_adj_hrs = 12 - sunrise_events[:NOON][0];
+            noon_adj_deg = 15 * noon_adj_hrs;
+            final_adj_deg = sun_adj_deg - hour_adj_deg - noon_adj_deg;
+            */
+
+            sunriseHelper();
+
+            //System.println("pp_sun:" + pp_sun);
+            //System.println("sun_a:" + sun_adj_deg + " hour_ad " + hour_adj_deg + "final_a " + final_adj_deg);        
+
         }
-        //dc.drawText(x, y-50, Graphics.FONT_SMALL, "Bug Off", Graphics.TEXT_JUSTIFY_CENTER);
-        */
-
-        //planetnames = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto","Ceres","Chiron","Eris"];
-        
-        whh_sun  = ["Sun"];
-        //whh = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn"];
-        //whh = whh0;
-        //whh = allPlanets.slice(0,4).add(allPlanets[5].addAll(allPlanets.slice(9,14))
-        //whh = allPlanets; //
-
-        var allPlanets = f.toArray(WatchUi.loadResource($.Rez.Strings.planets_Options1) as String,  "|", 0);
-
-        //deBug("allpl", allPlanets);
-        whh = ["Ec0", "Ec90", "Ec180", "Ec270",allPlanets[4]]; //put first so they are UNDER the planets.  Moon is next so planets will go in front of it (it's large)
-        
-        whh.addAll( allPlanets.slice(0,3)); ///so, array2 = array1 only passes a REFERENCE to the array, they are both still the same array with different names.  AARRGGgH!!
-        //f.deBug("ap1", whh);
-        whh.addAll(allPlanets.slice(5,8));
-        //f.deBug("ap2", whh);
-        if (Options_Dict[extraPlanets]) {
-            whh.addAll(allPlanets.slice(8,12));
-        }
-        allPlanets = null;
-
-        //f.deBug("ap3", [whh, Options_Dict[extraPlanets], Options_Dict]);
-
-         //we add these last so they show up on top of planets etc
-        
-
-        //deBug ("www - whh0", whh);
-        //vspo_rep = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn", "Uranus","Neptune"];
-        /*
-        if (big_small == 1) {
-             //whh = ["Sun", "Moon", "Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto","Ceres","Chiron","Eris", "Gonggong"]; 
-             whh = whh1;
-             whh = allPlanets.slice(0,3).add(allPlanets[5].addAll(allPlanets.slice(9,16))
-        }
-        */
-
-
-        //TODO: Make all this JUlian Time so we don't need to worry about Unix seconds & all that
-        //add_duration = new Time.Duration($.time_add_hrs*3600);
-        //System.println("View Ecliptic:" + add_duration + " " + $.time_add_hrs);
-
-        //now = System.getClockTime();
-        //var $.now_info = Time.Gregorian.info(Time.now().add(add_duration), Time.FORMAT_SHORT);
-        //var $.time_now = Time.now();
-        //var $.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);
-        
-
-
-
-        //System.println("View Ecliptic:" + $.now_info.year + " " + $.now_info.month + " " + $.now_info.day + " " + $.now_info.hour + " " + $.now_info.min + " " + $.now.timeZoneOffset/3600 + " " + $.now.dst);
-        //g = new Geocentric($.now_info.year, $.now_info.month, $.now_info.day, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh);
-
-        //pp=g.position();
-        //kys = pp.keys();
-
-        //Geo_cache.fetch always returns the info for Midnight UTCH
-        //Which we then add the correct # of hours to (depending on )
-        //current  time zone, DST, etc, in order to put the 
-        //sun @ the correct time.  We also put in a small adjustment
-        //So that local solar noon is always directly UP & solor 
-        //midnight is directly DOWN on the circle.
-        //pp2 = $.geo_cache.fetch($.now_info.year, $.now_info.month, $.now_info.day, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh);
-        //moon_info = simple_moon.lunarPhase($.now_info, $.now.timeZoneOffset, $.now.dst);
-
-        /* input = {:year => $.now_info.year,
-        :month => $.now_info.month,
-        :day => $.now_info.day,
-        :hour => $.now_info.hour,
-        :minute => $.now_info.min,
-        :UT => $.now.timeZoneOffset/3600,
-        :dst => $.now.dst,
-        :longitude => lastLoc[0], 
-        :latitude => lastLoc[1],
-        :topographic => false, 
-        };
-        moon = new Moon(input);
-        */
-
-        //    $.time_now = Time.now();
-        //$.time_now = now; //for testing
-        //$.now_info = Time.Gregorian.info($.time_now, Time.FORMAT_SHORT);   
-        //simple_moon = new simpleMoon();
-        //deBug ("moon_infe ", [$.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs]);
-
-        //deBug("moon_infe: ", [$.now.hour, $.now.min, $.now.sec, $.now_info.day, $.now_info.month, $.now_info.year, $.time_now.value(), $.now_info, $.run_oneTime, $.time_add_hrs, $.speeds, $.speeds_index]);
-        
-
-        //deBug("moon_inf", moon_info3);
-
-        //sun_info3 =  simple_moon.eclipticSunPos ($.now_info, $.now.timeZoneOffset, $.now.dst); 
-        //simple_moon = null;
-
-        //elp82 = new ELP82();
-        //moon_info4 = elp82.eclipticMoonELP82 ($.now_info, $.now.timeZoneOffset, $.now.dst);
-        //elp82 = null;
-
-        
-        // moon_info2 = simple_moon.lunarPhase($.now_info, $.now.timeZoneOffset, $.now.dst);
-        //moon_info = moon.position();
-        //vspo87a = new vsop87a_nano();
-        //vspo87a = new vsop87a_pico();
-        //pp = vspo87a.planetCoord($.now_info, $.now.timeZoneOffset, $.now.dst, :ecliptic_latlon);
-        //pp = vsop_cache.fetch($.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs, :ecliptic_latlon, whh);   
-        
-        
-        var v = new vs();
-        pp = v.planetCoord($.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs, :ecliptic_latlon, whh, :widget);   
-        v = null;
-        
-        //vspo87a = null;
-
-        
-        //Add 4 ecliptic points to the planets
-        for (var rra_deg = 0; rra_deg<360;rra_deg += 90) {
-                var ddecl = 0;
-                if (rra_deg == 90) { ddecl = obliq_deg;}
-                if (rra_deg == 270) { ddecl = obliq_deg;}
-                //pp.put("Ecliptic"+rra_deg, [f.normalize(pp["Sun"][0] + rra_deg), ddecl]);
-                pp.put("Ec"+rra_deg, [rra_deg, ddecl, 50]);
-         }
-
-         //flattenEclipticPP(obliq_deg);     
-
-        //deBug("pp: ", pp);
-
-        //System.println("Moon simple3: " + moon_info3 + " elp82: "+ moon_info4);
-        //System.println("Moon simple2: " + moon_info2);
-        //System.println("Moon ecl pos: " + moon_info);
-        //pp.put("Moon", [pp["Sun"][0] + moon_info[0]]);
-        //deBug("moon, ", [moon_info3[0]]);
-
-        
-        
-        //pp["Sun"] = [sun_info3[:lat], sun_info3[:lon], sun_info3[:r]];
-        //System.println("Sun info3: " + sun_info3);
-        //System.println("Moon info: " + moon_info);
-        //System.println("Sun-moon: " + pp["Sun"][0] + " " + pp["Moon"][0] );
-        //System.println("Sun simple3: " + sun_info3);
-        //System.println("pp: " + pp);
-        //System.println("pp2: " + pp2);
-
-
-        
-        //g = null;
-
-        //g = new Geocentric($.now_info.year, $.now_info.month, $.now_info.day, 0, 0, $.now.timeZoneOffset/3600, $.now.dst,"ecliptic", whh_sun);
-
-        //pp_sun = g.position();
-
-
-
-        //g = null;
-
-        //setPosition();
-        //var pos_info = self.lastLoc.getInfo();
-        //var deg = pos_info.position.toDegrees();
-
-        //srs = new sunRiseSet($.now_info.year, $.now_info.month, $.now_info.day, $.now.timeZoneOffset/3600, $.now.dst, lastLoc[0], lastLoc[1]);
-        //sunrise_events = srs.riseSet();
-        /*
-
-        sunrise_events = sunrise_cache.fetch($.now_info.year, $.now_info.month, $.now_info.day, $.now.timeZoneOffset/3600, $.now.dst, time_add_hrs, lastLoc[0], lastLoc[1]);
-
-        //System.println("Sunrise_set: " + sunrise_events);
-        //System.println("Sunrise_set: " + sunrise_set);
-        //sunrise_set = [sunrise_set[0]*15, sunrise_set[1]*15]; //hrs to degrees
-
-        //This puts our midnight sun @ the bottom of the graph; everything else relative to it
-        //geo_cache.fetch brings back the positions for UTC & no dst, so we'll need to correct
-        //for that
-        //TODO: We could put in a correction for EXACT LONGITUDE instead of just depending on 
-        //$.now_info.hour=0 being the actual local midnight.
-        //pp/ecliptic degrees start at midnight (bottom of circle) & proceed COUNTERclockwise.
-        sun_adj_deg = 270 - pp["Sun"][0];
-        hour_adj_deg = f.normalize($.now_info.hour*15 + time_add_hrs*15.0 + $.now_info.min*15/60);
-        //We align everything so that NOON is directly up (SOLAR noon, NOT 12:00pm)
-        noon_adj_hrs = 12 - sunrise_events[:NOON][0];
-        noon_adj_deg = 15 * noon_adj_hrs;
-        final_adj_deg = sun_adj_deg - hour_adj_deg - noon_adj_deg;
-        */
-
-        sunriseHelper();
-
-        //System.println("pp_sun:" + pp_sun);
-        //System.println("sun_a:" + sun_adj_deg + " hour_ad " + hour_adj_deg + "final_a " + final_adj_deg);        
 
         //dc.setPenWidth(1);
         //dc.drawArc(xc, yc, r,Graphics.ARC_CLOCKWISE, 0,360);
@@ -1188,7 +1225,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             dc.setPenWidth(1);
         }
 
-        sunrise_events2=null;
+        //sunrise_events2=null;
 
         //sun_adj_deg = (270 - pp["Sun"][0]);// 
         /*
@@ -1215,24 +1252,24 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         dc.setPenWidth(1);
 
 */
+            if (do_calc) {
+
+            //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            //MOOOOON&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            var sm = new simpleMoon();
+            moon_info3 = sm.eclipticPos_moon ($.now_info, $.now.timeZoneOffset, $.now.dst, 0); 
+            sm = null;
+
+            
+            pp.put("Moon", [moon_info3[0]]);
+            moon_info3 = null;
+
+            //moon_age_deg = f.normalize (equatorialLong2eclipticLong_deg(pp["Moon"][0], obliq_deg) - equatorialLong2eclipticLong_deg(pp["Sun"][0], obliq_deg)); //0-360 with 0 being new moon, 90 1st q, 180 full, 270 last q
+            //deBug("PP:", pp);
+            moon_age_deg = f.normalize ((pp["Moon"][0]) - (pp["Sun"][0])); //0-360 with 0 being new moon, 90 1st q, 180 full, 270 last q
         
 
-        //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        //MOOOOON&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        var sm = new simpleMoon();
-        moon_info3 = sm.eclipticPos_moon ($.now_info, $.now.timeZoneOffset, $.now.dst, time_add_hrs); 
-        sm = null;
-
-        
-        pp.put("Moon", [moon_info3[0]]);
-        moon_info3 = null;
-
-        //moon_age_deg = f.normalize (equatorialLong2eclipticLong_deg(pp["Moon"][0], obliq_deg) - equatorialLong2eclipticLong_deg(pp["Sun"][0], obliq_deg)); //0-360 with 0 being new moon, 90 1st q, 180 full, 270 last q
-        //deBug("PP:", pp);
-        moon_age_deg = f.normalize ((pp["Moon"][0]) - (pp["Sun"][0])); //0-360 with 0 being new moon, 90 1st q, 180 full, 270 last q
-        
-
-
+        }
         
         
         
@@ -1242,7 +1279,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //sid = sunrise_events[SIDEREAL_TIME][0] * 15;
         //sid = srs.siderealTime($.now_info.year, $.now_info.month, $.now_info.day, $.now_info.hour, $.now_info.min, $.now.timeZoneOffset/3600, $.now.dst, lastLoc[0], lastLoc[1]);        
 
-        srs = null;
+        //srs = null;
 
         //System.println("SID approx " + sid_old + "SIDEREAL_TIME" + sid + "daily: " + sunrise_events[SIDEREAL_TIME][0]);
 
@@ -1285,12 +1322,12 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         }
 
         if ($.show_intvl < 5 * $.hz && $.view_mode != 0) {
-            showDate(dc, $.now_info, $.time_now, time_add_hrs, xc, yc, true, true, :ecliptic_latlon);
+            showDate(dc, $.now_info, $.time_now, 0, xc, yc, true, true, :ecliptic_latlon);
             $.show_intvl++;
         } else {
-            showDate(dc, $.now_info, $.time_now, time_add_hrs, xc, yc, true, false, :ecliptic_latlon);
+            showDate(dc, $.now_info, $.time_now, 0, xc, yc, true, false, :ecliptic_latlon);
         }
-
+        /*
         pp=null;
         pp_sun = null;
         //kys =  null;
@@ -1301,6 +1338,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         whh = null;
         whh_sun = null;
         spots = null;
+        */
 
     }
     
@@ -2312,8 +2350,10 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         textHeight =  dc.getFontHeight(font);        
         var bigTextHeight = dc.getFontHeight(bigfont);        
         var justify = Graphics.TEXT_JUSTIFY_CENTER;
+        
+        addTime_hrs = 0;
 
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
         //var sm_ret = showMessage(dc, justify);  //will use same color font, textHeight as above
 
         //if (sm_ret> 0 ) { return; }  //any msg displayed, we just skip all these dates etc
@@ -2396,6 +2436,8 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
             var yr = "";
 
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+
             if (incl_years) { 
                 yr = new_date_info.year.format("%02d").substring(2,4);
                 if (new_date_info.year>2099 || new_date_info.year< 1930 ) { yr = new_date_info.year.format("%04d");}
@@ -2406,6 +2448,11 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                 dc.drawText(xcent1, ycent1 - textHeight/2.1, font, dt, justify);
                 dc.drawText(xcent1, ycent1 + textHeight/2.1, font, yr, justify);
             } else { */
+                var wid = dc.getTextWidthInPixels(dt + " " + yr, font);
+                dc.setClip (xcent1-wid/2.0, ycent1,wid, textHeight );
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                //dc.setColor(Graphics.COLOR_DK_GREEN, Graphics.COLOR_RED);
+                dc.clear();
                 dc.drawText(xcent1, ycent1, font, dt + " " + yr, justify);
 
             //}
@@ -2427,8 +2474,15 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                     if (new_date_info.hour >=12) {
                         ampm = "pm";
                     }
+                    var txt = hr.format("%d")+":" + new_date_info.min.format("%02d") + ampm;
 
-                    dc.drawText(xcent3, ycent3, bigfont, hr.format("%d")+":" + new_date_info.min.format("%02d") + ampm, justify);
+                    var widt = dc.getTextWidthInPixels(txt, bigfont);
+                    dc.setClip (xcent3-widt/2, ycent3,widt , bigTextHeight );
+                    dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+
+                    //dc.setColor(Graphics.COLOR_DK_BLUE, Graphics.COLOR_YELLOW);
+                    dc.clear();
+                    dc.drawText(xcent3, ycent3, bigfont, txt , justify);
 
                 }
             }
@@ -2438,14 +2492,18 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             //var j2 = f.j2000Date (new_date_info.year, new_date_info.month, new_date_info.day, new_date_info.hour, new_date_info.min, 0, 0);
 
             //var targDate_days = f.j2000Date (new_date_info.year, new_date_info.month, new_date_info.day, new_date_info.hour, new_date_info.min, 0, 0) + addTime_hrs/24l;
-            var targDate_days = j2000Date ($.now_info.year, $.now_info.month, $.now_info.day,$.now_info.hour, $.now_info.min,$.now.timeZoneOffset/3600, $.now.dst) + addTime_hrs/24l; //So GREGORIAN malfunctions around 2100 or 2110 and similarly in the past; so we transition to using TODAY'S DATE together with the addTime.HRS instead, as Julian
+            var targDate_days = j2000Date ($.now_info.year, $.now_info.month, $.now_info.day,$.now_info.hour, $.now_info.min,$.now.timeZoneOffset/3600, $.now.dst); //So GREGORIAN malfunctions around 2100 or 2110 and similarly in the past; so we transition to using TODAY'S DATE together with the addTime.HRS instead, as Julian
             var targDate_years = (targDate_days/365.25d + 2000d).toFloat(); 
 
 
+            var txt = targDate_years.format("%.2f");
 
-            dc.drawText(xcent1, ycent1, font, targDate_years.format("%.2f"), justify);
+            var wid = dc.getTextWidthInPixels(txt, bigfont);
+            dc.setClip (xcent1-wid/2-4, ycent1-2,wid + 8, bigTextHeight+4 );
+            dc.drawText(xcent1, ycent1, font, txt, justify);
 
         }
+        dc.clearClip();
         /*
         // #### STOPPED ####
         if (stop) {
