@@ -681,7 +681,7 @@ function uranus_z(t){
    }
 
 
-   
+ /*  
    public function getPluto (d) {
 
            //ploutonas - Pluto
@@ -715,7 +715,90 @@ function uranus_z(t){
         var y = r_pl * Math.sin(long2_pl) * Math.cos(lat2_pl);
         var z = r_pl * Math.sin(lat2_pl);
         return [x, y, z];
-   }
+   }*/
+
+   
+   //THIS IS FROM GREG MILLER CELESTIALPROGRAMMING.COM and
+   //gives the RIGHT ANSWER for PLUTO
+   //https://www.celestialprogramming.com/planets_with_keplers_equation.html
+
+   //3000BC to 3000AD elements are used below for PLUTO
+
+   /*This is an implementation of the algorithm described in Chapter 8 of the Explanatory Supplement to the Astronomical Almanac 3rd ed P340. Two sets of elements are provided, and they are accurate for different intervals. The first set is valid for 1800-2050, and the worst case accuracy is for Saturn at about 10 arc minutes. Most others are under 1 arcmin. The second set is valid for 3000BC to 3000AD, and has a worst case accuracy (for Uranus) of about half a degree. Most others are on the order of 1 arc minute. See table 8.10 in the Explanatory Supplement for full accuracy details.
+
+   You'll notice that each planet has 12 elements rather than the nomral 6 Kelperian elements. A pure Kelperian element solve looses accuracy rather quickly due to purturation effects from other planets. So the authors of this routine have provided an additional 6 elements which are corrections to the Kelperian elements based on time since Jan 1 2000. The corrections were specifically fit to the specified time periods, so they are considered invalid outside of that time period.*/
+
+   var pluto_elements = [39.48686035,      0.24885238,     17.14104260,      238.96535011,    224.09702598,    110.30167986];
+   var pluto_rates =   [ 0.00449751,      0.00006016,      0.00000501,      145.18042903,     -0.00968827,     -0.00809981];
+   var pluto_extraterms = [-0.01262724,    0,             0,             0,] ;
+
+   function getPluto(jd){
+    var toRad=Math.PI/180.0;
+    //Algorithm from Explanatory Supplement to the Astronomical Almanac ch8 P340
+    //Step 1:
+    var T=(jd-2451545.0)/36525.0;
+    var a=pluto_elements[0]+pluto_rates[0]*T;
+    var e=pluto_elements[1]+pluto_rates[1]*T;
+    var I=pluto_elements[2]+pluto_rates[2]*T;
+    var L=pluto_elements[3]+pluto_rates[3]*T;
+    var w=pluto_elements[4]+pluto_rates[4]*T;
+    var O=pluto_elements[5]+pluto_rates[5]*T;
+
+    //Step 2:
+    var ww=w-O;
+    var M=L - w;
+    if(pluto_extraterms.size() > 0){
+        var b=pluto_extraterms[0];
+        var c=pluto_extraterms[1];
+        var s=pluto_extraterms[2];
+        var f=pluto_extraterms[3];
+        M=L - w + b*T*T + c*Math.cos(f*T*toRad) + s*Math.sin(f*T*toRad);
+    }
+
+    while(M>180){M-=360;}
+
+    var E=M+57.29578*e*Math.sin(M*toRad);
+    var dE=1;
+    var n=0;
+    while(dE.abs()>1e-7 && n<10){
+        dE=SolveKepler(M,e,E);
+        E+=dE;
+        n++;
+    }
+
+    //Step 4:
+    var xp=a*(Math.cos(E*toRad)-e);
+    var yp=a*Math.sqrt(1-e*e)*Math.sin(E*toRad);
+    var zp=0;
+
+    //Step 5:
+    a*=toRad; e*=toRad; I*=toRad; L*=toRad; ww*=toRad; O*=toRad;
+    var xecl=(Math.cos(ww)*Math.cos(O)-Math.sin(ww)*Math.sin(O)*Math.cos(I))*xp + (-Math.sin(ww)*Math.cos(O)-Math.cos(ww)*Math.sin(O)*Math.cos(I))*yp;
+    var yecl=(Math.cos(ww)*Math.sin(O)+Math.sin(ww)*Math.cos(O)*Math.cos(I))*xp + (-Math.sin(ww)*Math.sin(O)+Math.cos(ww)*Math.cos(O)*Math.cos(I))*yp;
+    var zecl=(Math.sin(ww)*Math.sin(I))*xp + (Math.cos(ww)*Math.sin(I))*yp;
+
+    //Step 6:
+    var eps=23.43928*toRad;
+
+    var x=xecl;
+    var y=Math.cos(eps)*yecl - Math.sin(eps)*zecl;
+    var z=Math.sin(eps)*yecl + Math.cos(eps)*zecl;
+
+    return [x,y,z];
+
+}
+
+function SolveKepler(M,e,E){
+    var toRad=Math.PI/180;
+
+    var dM=M - (E-e/toRad*Math.sin(E*toRad));
+    var dE=dM/(1-e*Math.cos(E*toRad));
+    return dE;
+
+}
+
+
+
    /*
    public function getEris (d){
         /*
