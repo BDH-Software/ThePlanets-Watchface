@@ -280,11 +280,11 @@ module f {
     function sind (deg)  {
         return Math.sin(Math.toRadians(deg));
     }
-    /*
+    
     function cosd (deg)  {
         return Math.cos(Math.toRadians(deg));
     }
-    */
+    
 
 
 
