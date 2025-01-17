@@ -706,7 +706,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         }
         //Get the move info every minute...
         moveBarLevel = activityMonitor_info.moveBarLevel;
-        deBug("movebarlevel",moveBarLevel);
+        //deBug("movebarlevel",moveBarLevel);
         if (moveBarLevel == null ) {moveBarLevel=0;}
         moveExpired = (moveBarLevel != null && moveBarLevel >= 5);
    
@@ -765,39 +765,39 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
          if ($.Options_Dict[showMove]  && moveExpired  )
         {
             drawMove(dc, Graphics.COLOR_WHITE);
-            deBug("DRAWMOVE",null);
+            //deBug("DRAWMOVE",null);
 
 
         } else {
 
-            deBug("NOMOVE",null);
+            //deBug("NOMOVE",null);
             
             var index = 0;
             //drawMove(dc, Graphics.COLOR_WHITE);
             if ($.Options_Dict[showBattery]) {
                 drawBattery(dc, activities_primaryColor, lowBatteryColor, Graphics.COLOR_WHITE);
                 index +=1.75;
-                deBug("DRAWBATTERY",null);
+                //deBug("DRAWBATTERY",null);
             }
             
             if ($.Options_Dict[showMinutes]) { 
                 drawMoveDots(dc, activeMinutesWeek, activeMinutesWeekGoal, index, activities_primaryColor);
                 index += 1;
-                deBug("DRAWminutessteps",[activeMinutesWeek, activeMinutesWeekGoal]);
+                //deBug("DRAWminutessteps",[activeMinutesWeek, activeMinutesWeekGoal]);
                 
             }
             if ($.Options_Dict[showDayMinutes]) { 
-                deBug("DRAWsteps",[activeMinutesDay, activeMinutesDayGoal]);
+                //deBug("DRAWsteps",[activeMinutesDay, activeMinutesDayGoal]);
                 drawMoveDots(dc, activeMinutesDay, activeMinutesDayGoal, index, activities_primaryColor);
                 index += 1;
             }            
             if ($.Options_Dict[showSteps]) { 
-                deBug("DRAWsteps",[steps, stepGoal]);
+                //deBug("DRAWsteps",[steps, stepGoal]);
                 drawMoveDots(dc, steps, stepGoal, index, activities_primaryColor);
                 index += 1;
             }
             if ($.Options_Dict[showMove]) { 
-                deBug("DRAWmovebar",moveBarLevel);
+                //deBug("DRAWmovebar",moveBarLevel);
                 drawMoveDots(dc, moveBarLevel, 5, index, activities_primaryColor);
                 index += 1;
             }
@@ -1831,7 +1831,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                 } else
             if (key.equals("Uranus")) {
                 size =b_size *jup_size * 0.3627755289;
-                col = Graphics.COLOR_BLUE;
+                //col = Graphics.COLOR_BLUE;
+                //col = #1199ff
+                col = 0x1199ff;
                 fillcol = Graphics.COLOR_GREEN;
                 } else
             if (key.equals("Earth")) {
@@ -2090,7 +2092,10 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             case "Uranus" :
                 
                 //dc.drawLine(x, y+4*size/5, x, y-4*size/5);
-                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);                //
+                //col = #1199ff
+                //col = #0044cc
+                //dc.setColor(Graphics.COLOR_DK_BLUE, Graphics.COLOR_TRANSPARENT);                
+                dc.setColor(0x0044cc, Graphics.COLOR_TRANSPARENT);                //
                 dc.fillCircle (x, y, size/3);  
                 if (size>4) {drawARC (dc, 0, 24, x, y,3*size/4.0, pen, null);}
                 break;
