@@ -64,7 +64,7 @@
         ]
     </jsonData>
 
-    <jsonData id ="OptionsLabels"> ["Show extra planets?", "Show planet labels?", "Draw planets larger?", "Draw planets smaller?", "Glance AM/PM or Up Now?"]
+    <jsonData id ="OptionsLabels"> ["Show extra planets?", "Show planet labels?", "Draw planets larger?", "Draw planets smaller?", "Show Battery %: No-Yes", "Show Wkly Activity Minutes: No-Yes", "Show Daily Activity Minutes: No-Yes", "Show Daily Steps: No-Yes", "Show Move Bar: No-Yes"]
     </jsonData>
 
     <jsonData id ="butts">

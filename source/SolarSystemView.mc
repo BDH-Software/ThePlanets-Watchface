@@ -32,6 +32,8 @@ var ssbv_init_count_global = 0;
 var small_whh, /*full_whh,*/ zoomy_whh, whh0, whh1;
 var lastLoc as Lang.float;
 
+
+
 //! This view displays the position information
 class SolarSystemBaseView extends WatchUi.WatchFace {
 
@@ -42,6 +44,34 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
     public var xc, yc, min_c, max_c, screenHeight, screenWidth, targetDc, screenShape, thisSys;
     private var ssbv_init_count;
     var dirty = true;
+
+    var dateFont;
+    var timeFont;
+    var dateTextHeight;
+    var timeTextHeight;
+
+    var activities_background_color = Graphics.COLOR_BLACK;
+    var lowBatteryColor = Graphics.COLOR_RED;
+    var activities_primaryColor ;
+
+    var batt_width_rect = 12;
+    var batt_height_rect = 6;
+    var batt_width_rect_small = 2;
+    var batt_height_rect_small = 4;
+    var batt_x, batt_y, batt_x_small, batt_y_small;
+
+    var dmd_w4;
+    var dmd_yy, dmd_x;
+    var dmd_w;
+    var dmd_h;
+    var activities_gap;
+
+    var stepGoal;
+    var steps;
+    var activeMinutesWeek, activeMinutesDay;
+    var activeMinutesWeekGoal, activeMinutesDayGoal;
+    var moveBarLevel, moveExpired;
+    var activityMonitor_info, si;
     
     
     
@@ -258,8 +288,52 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         max_c = (xc > yc) ? xc : yc;
         screenShape = thisSys.screenShape;
 
+        dateFont = Graphics.FONT_TINY;
+        timeFont = Graphics.FONT_LARGE;
+        dateTextHeight =  dc.getFontHeight(dateFont);        
+        timeTextHeight = dc.getFontHeight(timeFont);
+
         //startAnimationTimer($.hz);
-        thisSys = null;       
+        thisSys = null; 
+
+
+        batt_width_rect = Math.round(screenWidth/14.6).toNumber(); //12
+        batt_height_rect = Math.round(screenHeight/29.2).toNumber(); //6;
+        batt_width_rect_small = Math.round(batt_width_rect/6.0).toNumber(); //2;
+        batt_height_rect_small = Math.round(batt_height_rect*2/3.0).toNumber();//4;      
+
+        if ((batt_height_rect - batt_height_rect_small)%2 != 0 )
+        {batt_height_rect_small ++;}
+
+         //get battery icon position
+        batt_x = (screenWidth/2.0) - (batt_width_rect/2.0) - (batt_width_rect_small/2.0);
+        //batt_y = (screenHeight* .63) - (batt_height_rect/2);
+        batt_y = Math.round(yc + dateTextHeight + 2);
+        batt_x_small = batt_x + batt_width_rect;
+        batt_y_small = Math.floor(batt_y + ((batt_height_rect - batt_height_rect_small) / 2.0));
+        batt_x = Math.round(batt_x);
+
+        //Figure Move Dot positions
+        dmd_w4 =Math.ceil((batt_width_rect + batt_width_rect_small+3)/4);
+        //dmd_yy = batt_y + 1.5 * batt_height_rect;
+        dmd_yy = Math.round(batt_y);
+        dmd_w = Math.ceil((batt_width_rect + batt_width_rect_small+3)/4.0-1);
+        dmd_h = Math.round(batt_height_rect-3);
+        dmd_x = xc;
+
+        //always make it a square of the larger size
+        dmd_w = (dmd_w>dmd_h) ? dmd_w : dmd_h;
+        dmd_h = dmd_w;
+
+        activities_gap = 1;
+        if (yc > 129  ) {activities_gap =2;} //for whatever reason a couple of graphics things need to be +2 instead of +1 for some high-res devices like FR 965
+
+        activities_background_color = Graphics.COLOR_BLACK;
+        //lowBatteryColor = Graphics.COLOR_YELLOW;              
+        // #ff4488
+        //lowBatteryColor = Graphics.COLOR_YELLOW;                
+        lowBatteryColor = 0xff6666;
+        activities_primaryColor = Graphics.COLOR_LT_GRAY;
 
         
     
@@ -625,6 +699,16 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             return;
         }
         dirty = false;
+
+        //refreshed move,steps,activity mins every 2 mod 6 mins
+        if (!_getActivityData_inited || $.now_info.sec == 0 ) {
+           getActivityData();
+        }
+        //Get the move info every minute...
+        moveBarLevel = activityMonitor_info.moveBarLevel;
+        deBug("movebarlevel",moveBarLevel);
+        if (moveBarLevel == null ) {moveBarLevel=0;}
+        moveExpired = (moveBarLevel != null && moveBarLevel >= 5);
    
 
         /*         if ($.view_mode>0 && !reset_date_stop && started)  {
@@ -677,6 +761,49 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //largeEcliptic(dc, 0);
         
          doUpdate(dc, started);
+
+         if ($.Options_Dict[showMove]  && moveExpired  )
+        {
+            drawMove(dc, Graphics.COLOR_WHITE);
+            deBug("DRAWMOVE",null);
+
+
+        } else {
+
+            deBug("NOMOVE",null);
+            
+            var index = 0;
+            //drawMove(dc, Graphics.COLOR_WHITE);
+            if ($.Options_Dict[showBattery]) {
+                drawBattery(dc, activities_primaryColor, lowBatteryColor, Graphics.COLOR_WHITE);
+                index +=1.75;
+                deBug("DRAWBATTERY",null);
+            }
+            
+            if ($.Options_Dict[showMinutes]) { 
+                drawMoveDots(dc, activeMinutesWeek, activeMinutesWeekGoal, index, activities_primaryColor);
+                index += 1;
+                deBug("DRAWminutessteps",[activeMinutesWeek, activeMinutesWeekGoal]);
+                
+            }
+            if ($.Options_Dict[showDayMinutes]) { 
+                deBug("DRAWsteps",[activeMinutesDay, activeMinutesDayGoal]);
+                drawMoveDots(dc, activeMinutesDay, activeMinutesDayGoal, index, activities_primaryColor);
+                index += 1;
+            }            
+            if ($.Options_Dict[showSteps]) { 
+                deBug("DRAWsteps",[steps, stepGoal]);
+                drawMoveDots(dc, steps, stepGoal, index, activities_primaryColor);
+                index += 1;
+            }
+            if ($.Options_Dict[showMove]) { 
+                deBug("DRAWmovebar",moveBarLevel);
+                drawMoveDots(dc, moveBarLevel, 5, index, activities_primaryColor);
+                index += 1;
+            }
+                                
+
+        }  
         
 
 
@@ -1404,10 +1531,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
     }
 
     function showDate(dc, date, time_nw, addTime_hrs ,xcent as Lang.float, ycent as Lang.float, incl_years, show, type){
-        font = Graphics.FONT_TINY;
-        var bigfont = Graphics.FONT_LARGE;
-        textHeight =  dc.getFontHeight(font);        
-        var bigTextHeight = dc.getFontHeight(bigfont);        
+
+        //Time & Date font set in onLayout()
+        
         var justify = Graphics.TEXT_JUSTIFY_CENTER;
         
         addTime_hrs = 0;
@@ -1420,10 +1546,10 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //System.println("showDate" + show);
         var targTime_sec = (addTime_hrs*3600).toLong() + time_nw.value();
         var xcent1  = xcent;  //DATE location
-        var ycent1   = ycent -  0 *textHeight; //DATE location
+        var ycent1   = ycent -  0 *dateTextHeight; //DATE location
         
         var xcent3   = xcent; //time location
-        var ycent3   = ycent - 1 * bigTextHeight; //time location
+        var ycent3   = ycent - 1 * timeTextHeight; //time location
 
         //var xcent2   = xcent;  //speed or "stopped" location //could be for battery etc
         //var ycent2   = ycent + 0.5* textHeight; 
@@ -1507,12 +1633,12 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                 dc.drawText(xcent1, ycent1 - textHeight/2.1, font, dt, justify);
                 dc.drawText(xcent1, ycent1 + textHeight/2.1, font, yr, justify);
             } else { */
-                var wid = dc.getTextWidthInPixels(dt + " " + yr, font);
-                dc.setClip (xcent1-wid/2.0, ycent1,wid, textHeight );
+                var wid = dc.getTextWidthInPixels(dt + " " + yr, dateFont);
+                dc.setClip (xcent1-wid/2.0, ycent1,wid, dateTextHeight );
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
                 //dc.setColor(Graphics.COLOR_DK_GREEN, Graphics.COLOR_RED);
                 dc.clear();
-                dc.drawText(xcent1, ycent1, font, dt + " " + yr, justify);
+                dc.drawText(xcent1, ycent1, dateFont, dt + " " + yr, justify);
 
             //}
             
@@ -1524,7 +1650,16 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
             if (new_date_info.year<2100 && new_date_info.year>1900) 
             { 
                 if (is24Hr)
-                { dc.drawText(xcent3, ycent3, bigfont, new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d"), justify);}
+                   
+                    { 
+                        var txt = new_date_info.hour.format("%02d")+":" + new_date_info.min.format("%02d");
+                        var widt = dc.getTextWidthInPixels(txt, timeFont);
+                        dc.setClip (xcent3-widt/2, ycent3,widt , timeTextHeight );
+                        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+
+                        //dc.setColor(Graphics.COLOR_DK_BLUE, Graphics.COLOR_YELLOW);
+                        dc.clear();
+                        dc.drawText(xcent3, ycent3, timeFont, txt, justify);}
                 else {
 
                     var hr = new_date_info.hour%12;
@@ -1535,13 +1670,13 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                     }
                     var txt = hr.format("%d")+":" + new_date_info.min.format("%02d") + ampm;
 
-                    var widt = dc.getTextWidthInPixels(txt, bigfont);
-                    dc.setClip (xcent3-widt/2, ycent3,widt , bigTextHeight );
+                    var widt = dc.getTextWidthInPixels(txt, timeFont);
+                    dc.setClip (xcent3-widt/2, ycent3,widt , timeTextHeight );
                     dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
 
                     //dc.setColor(Graphics.COLOR_DK_BLUE, Graphics.COLOR_YELLOW);
                     dc.clear();
-                    dc.drawText(xcent3, ycent3, bigfont, txt , justify);
+                    dc.drawText(xcent3, ycent3, timeFont, txt , justify);
 
                 }
             }
@@ -1557,9 +1692,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
 
             var txt = targDate_years.format("%.2f");
 
-            var wid = dc.getTextWidthInPixels(txt, bigfont);
-            dc.setClip (xcent1-wid/2-4, ycent1-2,wid + 8, bigTextHeight+4 );
-            dc.drawText(xcent1, ycent1, font, txt, justify);
+            var wid = dc.getTextWidthInPixels(txt, timeFont);
+            dc.setClip (xcent1-wid/2-4, ycent1-2,wid + 8, timeTextHeight+4 );
+            dc.drawText(xcent1, ycent1, timeFont, txt, justify);
 
         }
         dc.clearClip();
@@ -2880,6 +3015,146 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         System.println("setPosition (from GPS, final) at " + animation_count + " to: "  + new_lastLoc + " manual GPS mode?" + man_set + " final SET pos: " + self.lastLoc);
         return man_set;
     }
+
+    var _getActivityData_inited = false;
+
+    private function getActivityData() {
+
+        _getActivityData_inited = true;
+
+        activityMonitor_info = Toybox.ActivityMonitor.getInfo();                            
+
+
+        //if ($.Options_Dict["Show Move"]) {
+        
+        stepGoal = activityMonitor_info.stepGoal;
+        steps = activityMonitor_info.steps;
+        if (stepGoal == null || stepGoal == 0) {stepGoal=1500;}
+        if (steps == null) {steps=0;}
+        if (steps instanceof Lang.String ) { steps = steps.toFloat();}
+
+        activeMinutesWeek = activityMonitor_info.activeMinutesWeek.total;
+        activeMinutesWeekGoal = activityMonitor_info.activeMinutesWeekGoal;
+        if (activeMinutesWeekGoal == null || activeMinutesWeekGoal == 0) {activeMinutesWeekGoal=150;}
+        if ( activeMinutesWeek == null) { activeMinutesWeek=0;} 
+
+        activeMinutesDay = activityMonitor_info.activeMinutesDay.total;
+        activeMinutesDayGoal = activeMinutesWeekGoal/7.0;        
+        if ( activeMinutesDay == null) { activeMinutesDay=0;}    
+    }
+
+
+
+
+    function drawBattery(dc, primaryColor, lowBatteryColor, fullBatteryColor)
+    {
+        var battery = System.getSystemStats().battery;
+        
+        if(battery < 15.0)
+        {
+            primaryColor = lowBatteryColor;
+        }
+        //else if(battery == 100.0)
+        //{
+        //    primaryColor = fullBatteryColor;
+        //}
+        dc.setPenWidth(1);
+        dc.setColor(primaryColor, Graphics.COLOR_TRANSPARENT);
+        dc.drawRectangle(batt_x, batt_y, batt_width_rect, batt_height_rect);
+        //dc.setColor(activities_background_color, Graphics.COLOR_TRANSPARENT);
+        //dc.drawLine(batt_x_small-1, batt_y_small+1, batt_x_small-1, batt_y_small + batt_height_rect_small-1);
+        //return;
+
+        dc.setColor(primaryColor, Graphics.COLOR_TRANSPARENT);
+        dc.drawRectangle(batt_x_small, batt_y_small, batt_width_rect_small, batt_height_rect_small);
+        dc.setColor(activities_background_color, Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(batt_x_small, batt_y_small+1, batt_x_small, batt_y_small + batt_height_rect_small-activities_gap);
+
+        dc.setColor(primaryColor, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(batt_x, batt_y, (Math.ceil(batt_width_rect * battery / 100.0f)), batt_height_rect);
+        if(battery == 100.0)
+        {
+            dc.fillRectangle(batt_x_small, batt_y_small, batt_width_rect_small, batt_height_rect_small);
+        }
+    }
+
+    function drawMove(dc, text_color)
+    {
+        
+        var dateStr1 = "MOVE!";
+        dc.setColor(text_color, Graphics.COLOR_BLACK);        
+        
+        dc.drawText(screenWidth * .5, batt_y , Graphics.FONT_SYSTEM_XTINY, dateStr1, Graphics.TEXT_JUSTIFY_CENTER);      
+    }
+
+
+
+    function drawMoveDots(dc, num, goal, index, text_color)
+    {
+        dc.setPenWidth(1);
+        //System.println("dMD: " + num + " " + goal  + " " + index);
+
+        //System.println("dMD: " + (num instanceof Lang.Object) + " " + (goal instanceof Lang.Object)  + " " + index);
+        if (goal ==0 ) { goal =100; }
+        var numDots = num * 1.0/ (goal * 1.0) * 5 + 0.00001; //to avoid 4.9999 type situations when we round by .floor() later
+        var numD_floor = Math.floor(numDots);
+        var partial = numDots - numD_floor;
+
+        if (numDots==0 && partial < 1f/dmd_w ) { return; }
+        if ( numDots>6 ) { numDots = 6; partial = 0;  }
+        numD_floor = Math.floor(numDots);
+        if (partial <0.3333) {partial = 0;} 
+
+        var squares = numD_floor;
+        var partial_mx = Math.floor (partial * dmd_w);
+        if (numDots < 6 && partial >= 0.3333) { squares +=1; }
+
+        //var x_start = dmd_x - (numDots*dmd_w + numDots -1)/2; //Dots will be centered under the battery;
+        var fact = numD_floor*dmd_w + squares -1;
+        if (partial >= 0.3333) { fact = fact + partial;}
+        
+        var x_start = Math.round(dmd_x - (fact)/2.0); //Dots will be centered under the battery;
+
+        //System.println("dMD: " + numDots + " " + partial  + " " + squares);
+
+        //deBug("col", [text_color, Graphics.COLOR_TRANSPARENT]);
+        dc.setColor(text_color, Graphics.COLOR_TRANSPARENT);  
+        //dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);  
+        
+        //deBug("col", [squares]);
+        for (var i = 0; i < squares; i++) {
+            //var xx = x_start + i * dmd_w4;            
+            var xx = x_start + i * (dmd_w+1);//4            
+            var yy = dmd_yy + index * (dmd_h + activities_gap);
+            if (i < 5 || (i==5 && partial > 0)) {
+                var mx = dmd_w;//3;
+                if (i == numD_floor) { mx = partial_mx; }
+                
+                //System.println("dMD: " + numDots + " " + partial  + " " + squares + " " + i + " " + mx);
+
+                //dc.fillRectangle(xx, yy, dmd_w, dmd_h);            
+                for (var j=0; j<mx; j++) {
+                    dc.drawLine(xx + j, yy,xx +j ,yy + dmd_h);                    
+                    //deBug("drawline", [xx + j, yy,xx +j ,yy + dmd_h]);
+                    //deBug("drawline", [xx, yy,dmd_h]);
+                }
+                //} else { //the partial square
+                //    dc.fillRectangle(xx, yy, dmd_w * partial, dmd_h);            
+                //}
+            } else {
+                //plus sign
+                //dc.drawRectangle(xx, yy, dmd_w, dmd_h);            
+                var x_add = xx + Math.ceil(dmd_w/2.0);
+                var y_add = yy + Math.ceil(dmd_h/2.0);
+                dc.drawLine(x_add, yy,x_add ,yy + dmd_h);            
+                dc.drawLine(xx, y_add ,xx + dmd_w , y_add);            
+            }
+        }
+
+        
+        
+    }
+
 
     /*
     //Not sure if this is really necessary for display of  ecliptic planets.  But it does very slightly alter proportions, and makes the 4 ecliptic points fit in as they should.

@@ -19,6 +19,9 @@ var pages_total = 25;
 //var moon;
 
 var Options_Dict = {};
+var Options;
+var defOptions;
+var numOptions;
 
 var vspo87a;
 var vsop_cache;
@@ -80,7 +83,7 @@ enum {changeMode_enum= 0,
         } //screen0MoveOption_enum, 
         */
 
-(:glance)
+
 class SolarSystemBaseApp extends Application.AppBase {
 
     //enum {ECLIPTIC_STATIC, ECLIPTIC_MOVE, SMALL_ORRERY, MED_ORRERY, LARGE_ORRERY}
@@ -136,7 +139,7 @@ class SolarSystemBaseApp extends Application.AppBase {
             $.now.sec.format("%02d") + " " + now_info.year + "-" + now_info.month + "-" + now_info.day);
         
 
-        //readStorageValues();
+        
         
     }
 
@@ -173,15 +176,26 @@ class SolarSystemBaseApp extends Application.AppBase {
 
         Options = [extraPlanets, planetLabels,
             // smallerBanners, 
-            planetSizeL, planetSizeS, glanceType];
+            planetSizeL, planetSizeS,  showBattery,    showMinutes,
+            showDayMinutes, showSteps, showMove];
+
+        numOptions = 9;
+
         defOptions = {extraPlanets => false,
                   planetLabels => true,      
                     //smallerBanners => true,
                     planetSizeL => false,
                     planetSizeS => false,
-                    glanceType => false,
+                    showBattery => true,
+                    showMinutes => true,
+                    showDayMinutes => true,
+                    showSteps => true,
+                    showMove => true,
+                    
                     lastLoc_saved => [38, -94],
                     };
+
+        readStorageValues();                    
 
         //do this AFTER getting time & reading init storage values
         _solarSystemView = new $.SolarSystemBaseView();
@@ -224,6 +238,13 @@ class SolarSystemBaseApp extends Application.AppBase {
         //_solarSystemDelegate = null;
         _solarSystemView = null;
 
+    }
+
+    //! Return the settings view and delegate
+    //! @return Array Pair [View, Delegate]
+    public function getSettingsView() as [Views] or [Views, InputDelegates] or Null {
+        System.println("6A");
+        return [new $.SolarSystemSettingsMenu(), new $.SolarSystemSettingsMenuDelegate()];
     }
 
 /*
@@ -426,4 +447,41 @@ function changeModes(previousMode){
         changeModeOption_short = null;
         
 
+}
+
+//read stored settings & set default values if nothing stored
+    public function readStorageValues() as Void {
+       var temp;
+
+        /*
+
+        temp = Storage.getValue("Show Battery");
+        $.Options_Dict["Show Battery"] = temp  != null ? temp : true;
+        Storage.setValue("Show Battery",$.Options_Dict["Show Battery"]);        
+
+        temp = Storage.getValue("Show Minutes");
+        $.Options_Dict["Show Minutes"] = temp  != null ? temp : true;
+        Storage.setValue("Show Minutes",$.Options_Dict["Show Minutes"]);
+
+        temp = Storage.getValue("Show Day Minutes");
+        $.Options_Dict["Show Day Minutes"] = temp  != null ? temp : true;
+        Storage.setValue("Show Day Minutes",$.Options_Dict["Show Day Minutes"]);
+
+        temp = Storage.getValue("Show Steps");
+        $.Options_Dict["Show Steps"] = temp  != null ? temp : true;
+        Storage.setValue("Show Steps",$.Options_Dict["Show Steps"]);
+
+        temp = Storage.getValue("Show Move");
+        $.Options_Dict["Show Move"] = temp  != null ? temp : true;
+        Storage.setValue("Show Move",$.Options_Dict["Show Move"]);
+        */        
+
+
+    for (var i = 0; i < numOptions; i++) {
+        //Menu2.addItem(new WatchUi.ToggleMenuItem(Options[i], null, Options[i], $.Options_Dict[Options[i]]==true, null));
+
+        temp = Storage.getValue(Options[i]);
+        $.Options_Dict[Options[i]] = temp  != null ? temp : defOptions[Options[i]];
+        Storage.setValue(Options[i],$.Options_Dict[Options[i]]);
+    }
 }

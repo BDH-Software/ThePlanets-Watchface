@@ -115,7 +115,7 @@ function fetch (now_info, timeZoneOffset_sec, dst, timeAdd_hrs, type, req_array)
 //https://github.com/gmiller123456/vsop87-multilang/blob/master/Languages/JavaScript/vsop87a_pico.js
 
 //class vsop87a_pico{
-(:glance)
+
 class vs {
 
 
@@ -169,17 +169,17 @@ class vs {
 
             if (sin (allPlanets[0],vhh)) {ret.put (allPlanets[0], vspo_2_J2000([0,0,0], earth, true, type));} //SUN
 
-            if (context != :glance) {
+            //if (context != :glance) {
                var v2 = new vs2(); 
                if (sin (allPlanets[8],vhh)) {ret.put (allPlanets[8], vspo_2_J2000(v2.getUranus(t), earth, true, type));} 
                if (sin (allPlanets[9],vhh)) {ret.put (allPlanets[9], vspo_2_J2000(v2.getNeptune(t), earth, true, type));}
                
                if (sin (allPlanets[10],vhh)) {ret.put (allPlanets[10], vspo_2_J2000(v2.getPluto(JD), earth, false, type));}
 
-               if (sin (allPlanets[11],vhh)) {ret.put (allPlanets[11], vspo_2_J2000(v2.getCeres(JD), earth, false, type));}
+               //if (sin (allPlanets[11],vhh)) {ret.put (allPlanets[11], vspo_2_J2000(v2.getCeres(JD), earth, false, type));}
 
                v2 = null;
-            }
+            //}
         
         
 
@@ -841,6 +841,7 @@ function SolveKepler(M,e,E){
    }
    */
    
+   /*
    public function getCeres (d){
      /*
            var ddd = d + 2451543.5 - 2455400.5;
@@ -852,6 +853,7 @@ function SolveKepler(M,e,E){
         var e_ce=0.07913825487621974 + 1.8987E-8*ddd;
         var M_ce=113.4104433863731   + 0.21408169952325  * ddd ;
         */
+        /*
         
  
         var EPOCH=  2458849.5f;
@@ -885,6 +887,7 @@ function SolveKepler(M,e,E){
         return ret;
 
    }
+   */
    /*
 
    public function getChiron (d){

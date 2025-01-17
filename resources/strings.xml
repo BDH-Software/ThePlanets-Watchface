@@ -13,7 +13,7 @@
     <!-- OPTIONS-->
     <!-- <string id="planets_Options1">Sun|Mercury|Venus|Earth|Moon|Mars|AsteroidA|AsteroidB|Jupiter|Saturn|Uranus|Neptune|Pluto|Ceres|Chiron|Eris|Gonggong|Quaoar|Makemake|Haumea</string> -->
     
-    <string id="planets_Options1" scope="glance">Sun|Mercury|Venus|Earth|Moon|Mars|Jupiter|Saturn|Uranus|Neptune|Pluto|Ceres</string>
+    <string id="planets_Options1" scope="glance">Sun|Mercury|Venus|Earth|Moon|Mars|Jupiter|Saturn|Uranus|Neptune|Pluto</string>
 
     
     <string id="help_strings">Help &amp; Planet Abbreviations:|In Glance,..|A: = AM, morn planets|P: = PM, eve planets.|AM/PM Planets in|Glance are listed..|..in order outwards|from the Sun.|In the widget:|Use START, UP..|..DOWN in both screens|to move time OR..|..go faster/slower.|Planet Abbreviations:</string>
