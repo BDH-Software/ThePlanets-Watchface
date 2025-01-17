@@ -3110,15 +3110,17 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         if (numDots==0 && partial < 1f/dmd_w ) { return; }
         if ( numDots>6 ) { numDots = 6; partial = 0;  }
         numD_floor = Math.floor(numDots);
-        if (partial <0.3333) {partial = 0;} 
+        var part = 1f/dmd_w;
+        //if (partial <0.3333) {partial = 0;} 
+        if (partial <part) {partial = 0;} 
 
         var squares = numD_floor;
         var partial_mx = Math.floor (partial * dmd_w);
-        if (numDots < 6 && partial >= 0.3333) { squares +=1; }
+        if (numDots < 6 && partial >= part) { squares +=1; }
 
         //var x_start = dmd_x - (numDots*dmd_w + numDots -1)/2; //Dots will be centered under the battery;
         var fact = numD_floor*dmd_w + squares -1;
-        if (partial >= 0.3333) { fact = fact + partial;}
+        if (partial >= part) { fact = fact + partial;}
         
         var x_start = Math.round(dmd_x - (fact)/2.0); //Dots will be centered under the battery;
 
@@ -3127,6 +3129,22 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         //deBug("col", [text_color, Graphics.COLOR_TRANSPARENT]);
         dc.setColor(text_color, Graphics.COLOR_TRANSPARENT);  
         //dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);  
+
+        //If this activity hasn't started yet/nothing registered they get a littly
+        //TALLY just as a placeholder
+        if (numD_floor==0 && partial < 1f/dmd_w ) { 
+
+                var xx = Math.round(x_start).toNumber();//4            
+                var yy = Math.round(dmd_yy + index * (dmd_h + activities_gap)).toNumber();
+            
+                //var x_add = xx + (dmd_w)/2.0;
+                //var y_add = yy + (dmd_h)/2.0;
+                //dc.drawLine(x_add, yy,x_add ,yy + dmd_h);  
+                //deBug("NOTHING dots", [xx, yy ,yy + dmd_h ]);          
+                //dc.drawLine(xx, y_add ,xx + dmd_w , y_add); 
+                dc.drawLine(xx, yy,xx ,yy + dmd_h);            
+            return; 
+        }
         
         //deBug("col", [squares]);
         for (var i = 0; i < squares; i++) {
