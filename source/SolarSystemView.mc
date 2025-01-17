@@ -2093,9 +2093,9 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
                 
                 //dc.drawLine(x, y+4*size/5, x, y-4*size/5);
                 //col = #1199ff
-                //col = #0044cc
+                //col = #0066cc
                 //dc.setColor(Graphics.COLOR_DK_BLUE, Graphics.COLOR_TRANSPARENT);                
-                dc.setColor(0x0044cc, Graphics.COLOR_TRANSPARENT);                //
+                dc.setColor(0x0066cc, Graphics.COLOR_TRANSPARENT);                //
                 dc.fillCircle (x, y, size/3);  
                 if (size>4) {drawARC (dc, 0, 24, x, y,3*size/4.0, pen, null);}
                 break;
