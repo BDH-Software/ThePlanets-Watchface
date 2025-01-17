@@ -328,7 +328,7 @@ class SolarSystemBaseView extends WatchUi.WatchFace {
         dmd_h = dmd_w;
 
         activities_gap = 1;
-        if (yc > 129  ) {activities_gap =2;} //for whatever reason a couple of graphics things need to be +2 instead of +1 for some high-res devices like FR 965
+        if (yc > 119  ) {activities_gap =2;} //for whatever reason a couple of graphics things need to be +2 instead of +1 for some high-res devices like FR 965
 
         activities_background_color = Graphics.COLOR_BLACK;
         //lowBatteryColor = Graphics.COLOR_YELLOW;              
