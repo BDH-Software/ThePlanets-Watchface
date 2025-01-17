@@ -5,8 +5,8 @@
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="2" lineNum="21" parent="globals" pc="268435494" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="2" lineNum="46" parent="globals" pc="268435503" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemSettingsView.mc" id="4" lineNum="66" parent="globals" pc="268435512" symbol="&lt;init&gt;"/>
-<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4315-00\\source\\Rez.mcgen" id="10" lineNum="30" parent="globals" pc="268435460" symbol="&lt;init&gt;"/>
-<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4315-00\\source\\Rez.mcgen" id="10" lineNum="26" parent="globals" pc="268435477" symbol="&lt;init&gt;"/>
+<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4595-00\\source\\Rez.mcgen" id="10" lineNum="30" parent="globals" pc="268435460" symbol="&lt;init&gt;"/>
+<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4595-00\\source\\Rez.mcgen" id="10" lineNum="26" parent="globals" pc="268435477" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="11" lineNum="378" parent="globals" pc="268435525" symbol="changeModes"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="11" lineNum="381" parent="globals" pc="268435536" symbol="changeModes"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="11" lineNum="382" parent="globals" pc="268435544" symbol="changeModes"/>
@@ -63,7 +63,7 @@
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemApp.mc" id="14" lineNum="84" parent="globals/SolarSystemBaseApp" pc="268436433" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\functions.mc" id="15" lineNum="568" parent="globals" pc="268436445" symbol="deBug"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\functions.mc" id="15" lineNum="569" parent="globals" pc="268436455" symbol="deBug"/>
-<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4315-00\\source\\Rez.mcgen" id="16" lineNum="7" parent="globals/Rez" pc="268436480" symbol="&lt;init&gt;"/>
+<entry filename="e:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\bin\\gen\\006-B4595-00\\source\\Rez.mcgen" id="16" lineNum="7" parent="globals/Rez" pc="268436480" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SSMenuDelegate.mc" id="17" lineNum="28" parent="globals/SSMenu" pc="268436500" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SSMenuDelegate.mc" id="18" lineNum="80" parent="globals/SSMenuDel" pc="268436512" symbol="&lt;init&gt;"/>
 <entry filename="E:\\Data-Brent\\Garmin-App-Development\\SDK-examples\\ThePlanets-Watchface\\source\\SolarSystemView.mc" id="19" lineNum="36" parent="globals/SolarSystemBaseView" pc="268436524" symbol="&lt;init&gt;"/>
@@ -2100,7 +2100,7 @@
 <entry endPc="268461878" name="ret" stackId="13" startPc="268461611"/>
 <entry arg="true" endPc="268461949" name="d" stackId="1" startPc="268461879"/>
 </localVars>
-<deviceInfo deviceVersion="4866e5192c0c99025597cd8e6e841f3d774b64f7" partNumber="006-B4315-00"/>
+<deviceInfo deviceVersion="4866e5192c0c99025597cd8e6e841f3d774b64f7" partNumber="006-B4595-00"/>
 <annotations>
 <annotationEntry annotation="initialized" class="Strings" module="globals/Rez" symbol="planets_Options1"/>
 <annotationEntry annotation="initialized" class="Drawables" module="globals/Rez" symbol="LauncherIcon"/>
